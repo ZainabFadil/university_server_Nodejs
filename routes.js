@@ -7,7 +7,6 @@ const Subject = require('./models/Subject');
 const multer = require('multer');
 const router = express.Router();
 
-
 ///////////////////////-> endpoints for students <- \\\\\\\\\\\\\\\\\\\\\\\\\\\
 // Initialize Multer for file uploads
 const storage = multer.diskStorage({
@@ -22,7 +21,7 @@ const upload = multer({ storage: storage });
 
 
 // Create a new student
-router.post('/student/create', upload.any(), async (req, res) => {
+router.post('/student/create', upload.single('photo'), async (req, res) => {
     const { name, specialization, yearLevel } = req.body;
     const photo = req.file ? req.file.path : undefined;
 
@@ -35,7 +34,7 @@ router.post('/student/create', upload.any(), async (req, res) => {
         });
 
         await student.save();
-        res.status(201).jsObjectIdon(student);
+        res.status(201).json(student);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -65,7 +64,7 @@ router.put('/student/update/:id', upload.any(), async (req, res) => {
             await student.save();
             res.status(200).json(student);
         } else {
-            res.status(404).json({ error: 'Student not found' });
+            res.status(404).json({ error: 'student not found' });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -129,14 +128,25 @@ router.put('/instructor/update/:id', upload.any(), async (req, res) => {
             await instructor.save();
             res.status(200).json(student);
         } else {
-            res.status(404).json({ error: 'Student not found' });
+            res.status(404).json({ error: 'instructor not found' });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-
+router.delete('/instructor/delete/:id', async (req, res) => {
+    try {
+        const instructor = await Instructor.findByIdAndDelete(req.params.id);
+        if (instructor) {
+            res.status(200).json({ message: 'Instructor deleted' });
+        } else {
+            res.status(404).json({ error: 'instructor not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 ///////////////////specialization endpoints
 
 
@@ -160,7 +170,7 @@ router.post('/specializations/create', async (req, res) => {
 // Read all specializations
 router.get('/specializations/getall', async (req, res) => {
     try {
-        const specializations = await Specialization.find().populate('yearLevel instructors');
+        const specializations = await Specialization.find().populate('yearLevel');
         res.status(200).json(specializations);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -297,10 +307,10 @@ router.delete('/subjects/delete/:id', async (req, res) => {
     }
 });
 ///////////////////////////-> yearlevel <-\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-// Create a new year level
+// Create a new year level 
 router.post('/year-levels/create', async (req, res) => {
     const { name } = req.body;
-
+//http://localhost:8080/api/year-levels/create
     try {
         const yearLevel = new YearLevel({
             name,
@@ -369,3 +379,4 @@ router.delete('/year-levels/delete/:id', async (req, res) => {
     }
 });
 module.exports = router;
+
